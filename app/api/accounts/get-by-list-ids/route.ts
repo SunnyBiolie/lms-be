@@ -19,6 +19,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ listAccounts });
   } catch (err) {
-    throw err;
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

@@ -5,12 +5,12 @@ import prisma from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   try {
     const newData: Book & {
-      categories: number[];
+      Categories: number[];
     } = await request.json();
 
     const isExists = await prisma.book.findFirst({
       where: {
-        name: newData.name,
+        title: newData.title,
         author: newData.author,
       },
     });
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const connectCats = newData.categories.map((cat) => {
+    const connectCats = newData.Categories.map((cat) => {
       return {
         id: cat,
       };
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     await prisma.book.create({
       data: {
         ...newData,
-        categories: {
+        Categories: {
           connect: connectCats,
         },
       },
@@ -42,6 +42,9 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
-    throw err;
+    return NextResponse.json(
+      { message: (err as Error).name, err },
+      { status: 500 }
+    );
   }
 }

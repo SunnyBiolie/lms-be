@@ -1,3 +1,4 @@
+import { missingFields } from "@/configs";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,13 +16,13 @@ export async function DELETE(request: NextRequest) {
         select: {
           _count: {
             select: {
-              transactions: true,
+              Transactions: true,
             },
           },
         },
       });
 
-      if (c?._count.transactions !== 0) {
+      if (c?._count.Transactions !== 0) {
         return NextResponse.json(
           { message: "This book is being borrowed" },
           { status: 409 }
@@ -40,8 +41,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ error: "Id is missing" }, { status: 400 });
+    return missingFields();
   } catch (err) {
-    throw err;
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

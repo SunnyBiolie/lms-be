@@ -1,0 +1,77 @@
+import { Account } from "@prisma/client";
+import dayjs from "dayjs";
+
+const accounts: Partial<Account>[] = [
+  {
+    fullName: "Mike Mccoy",
+    address: "9811 Prospect Rd",
+    phoneNumber: "(770) 792-1298",
+    email: "mike.mccoy@example.com",
+    birthDate: new Date("7/1/1957"),
+    userName: "M_Mccoy",
+    passWord: "1234",
+    role: "USER",
+  },
+  {
+    fullName: "Lucille Lowe",
+    address: "8183 Nowlin Rd",
+    phoneNumber: "(824) 298-2810",
+    email: "lucille.lowe@example.com",
+    birthDate: new Date("10/5/1998"),
+    userName: "Lucy",
+    passWord: "1234",
+    role: "USER",
+  },
+  {
+    fullName: "Corey Ramos",
+    address: "5601 Bruce St",
+    phoneNumber: "(591) 842-1482",
+    email: "corey.ramos@example.com",
+    birthDate: new Date("7/5/1963"),
+    userName: "Corey Ramos",
+    passWord: "1234",
+    role: "USER",
+  },
+  {
+    fullName: "Dennis Stewart",
+    address: "1205 Hillcrest Rd",
+    phoneNumber: "(784) 383-3108",
+    email: "dennis.stewart@example.com",
+    birthDate: new Date("2/2/1964"),
+    userName: "Stewart",
+    passWord: "1234",
+    role: "USER",
+  },
+  {
+    fullName: "Aiden Wells",
+    address: "725 Frances Ct",
+    phoneNumber: "(418) 847-4985",
+    email: "aiden.wells@example.com",
+    birthDate: new Date("1/6/1999"),
+    userName: "we11d0ne",
+    passWord: "1234",
+    role: "USER",
+  },
+  {
+    fullName: "Emma Walker",
+    address: "4764 E Little York Rd",
+    phoneNumber: "(804) 310-8222",
+    email: "emma.walker@example.com",
+    birthDate: new Date("10/7/1979"),
+    userName: "user",
+    passWord: "user",
+    role: "USER",
+  },
+  {
+    fullName: "Lena Holland",
+    address: "6208 Wheeler Ridge Dr",
+    phoneNumber: "(445) 351-2061",
+    email: "lena.holland@example.com",
+    birthDate: new Date("5/7/1980"),
+    userName: "admin",
+    passWord: "admin",
+    role: "ADMIN",
+  },
+];
+
+export default accounts;

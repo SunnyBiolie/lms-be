@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { maxUnreturnedTransactions } from "@/configs/transaction.config";
+import dayjs from "dayjs";
 
+/*
+  Validations:
+    + Số lượng đang được mượn của sách này so với tổng số sách
+    + Sách có đang được mượn bởi account này
+    + Đã chạm đến giới hạn số sách được mượn cùng lúc hay không
+*/
 export async function POST(request: NextRequest) {
   try {
-    const { accountId, bookId, expectedReturnAt } = await request.json();
+    const { accountId, bookId, dueDate } = await request.json();
 
     const book = await prisma.book.findUnique({
       where: {
@@ -26,7 +33,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (borrowingCount >= book.allQuantity) {
+    if (borrowingCount >= book.quantity) {
       return NextResponse.json(
         { message: "This book is not avaliable now" },
         { status: 409 }
@@ -37,6 +44,9 @@ export async function POST(request: NextRequest) {
     const listBorrowing = await prisma.transaction.findMany({
       where: {
         accountId: accountId,
+        returnedAt: {
+          equals: null,
+        },
       },
     });
 
@@ -58,7 +68,8 @@ export async function POST(request: NextRequest) {
       data: {
         accountId,
         bookId,
-        expectedReturnAt: [expectedReturnAt],
+        borrowedAt: dayjs(Date.now()).format(),
+        dueDate: dueDate,
       },
     });
 
@@ -66,7 +77,7 @@ export async function POST(request: NextRequest) {
       { message: "Borrow this book successfully" },
       { status: 201 }
     );
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

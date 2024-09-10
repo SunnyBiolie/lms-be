@@ -2,18 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { Book } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
+/*
+  Validations:
+    + Kiểm tra sách có đang được mượn hay không
+*/
+
 export async function POST(request: NextRequest) {
   try {
     const {
       id,
-      name,
+      title,
       author,
       publisher,
-      categories,
-      allQuantity,
-      yearOfPublication,
+      Categories,
+      quantity,
+      publicationDate,
+      pages,
     }: Book & {
-      categories: number[];
+      Categories: number[];
     } = await request.json();
 
     // Kiểm tra sách có đang được mượn hay không
@@ -24,20 +30,20 @@ export async function POST(request: NextRequest) {
       select: {
         _count: {
           select: {
-            transactions: true,
+            Transactions: true,
           },
         },
       },
     });
 
-    if (c?._count.transactions !== 0) {
+    if (c?._count.Transactions !== 0) {
       return NextResponse.json(
         { message: "This book is being borrowed" },
         { status: 409 }
       );
     }
 
-    const connectCats = categories.map((cat) => {
+    const connectCats = Categories.map((cat) => {
       return {
         id: cat,
       };
@@ -48,20 +54,21 @@ export async function POST(request: NextRequest) {
         id,
       },
       data: {
-        name,
+        title,
         author,
         publisher,
-        categories: {
+        Categories: {
           set: [],
           connect: connectCats,
         },
-        allQuantity,
-        yearOfPublication,
+        quantity,
+        publicationDate,
+        pages,
       },
     });
 
-    return NextResponse.json("Edit book successfully");
+    return NextResponse.json({ message: "Edit book successfully" });
   } catch (err) {
-    throw err;
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
+import { getAccountInfor } from "@/lib/helper";
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
       message?: string;
       data?: {
         [props: string]: string;
-        username: string;
+        userName: string;
       };
     } = await new Promise((resolve, reject) => {
       jwt.verify(accessToken, process.env.SECRET_KEY!, (err, decoded) => {
@@ -35,32 +36,27 @@ export async function GET() {
 
     if (verifyResult.type === "success") {
       if (verifyResult.data) {
-        const account = await prisma.account.findFirst({
-          where: {
-            userName: verifyResult.data.userName,
-          },
-          select: {
-            id: true,
-            userName: true,
-            role: true,
-            transactions: {
-              select: {
-                bookId: true,
-              },
-            },
-          },
-        });
+        console.log(verifyResult.data);
+        const account = await getAccountInfor(verifyResult.data.userName);
 
         if (account) {
           return NextResponse.json({
             currentAccount: account,
           });
         } else {
-          throw new Error("Please clear your cookies");
+          return NextResponse.json(
+            { message: "Could not find an account", redirectToAuth: true },
+            {
+              status: 500,
+              headers: {
+                "Set-Cookie": `access-token=deleted; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+              },
+            }
+          );
         }
       }
     } else throw new Error(verifyResult.message);
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

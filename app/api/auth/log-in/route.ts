@@ -12,7 +12,12 @@ export async function POST(request: NextRequest) {
         userName,
       },
       include: {
-        transactions: {
+        Transactions: {
+          where: {
+            returnedAt: {
+              equals: null,
+            },
+          },
           select: {
             bookId: true,
           },
@@ -46,10 +51,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         accountInfo: {
-          id: account.id,
-          userName: account.userName,
-          role: account.role,
-          transactions: account.transactions,
+          ...account,
+          passWord: null,
         },
         message: "Authentication successful",
       },
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    throw error;
+    return NextResponse.json(
+      { message: (error as Error).name },
+      { status: 500 }
+    );
   }
 }

@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -14,65 +15,79 @@ datasource db {
 }
 
 model Account {
-  id              String  @id @default(uuid())
-
-  name            String
+  id              String    @id @default(uuid())
+  fullName        String
   address         String
   phoneNumber     String
   email           String
-  dateOfBirth     DateTime
+  birthDate       DateTime
 
-  userName        String  @unique
+  userName        String    @unique
   passWord        String
-  role            String?
+  role            String
 
-  transactions    Transaction[]
+  // Borrowing       Borrowing[]
+  Transactions    Transaction[]
 }
 
 model Book {
-  id                  String        @id @default(uuid())
-  name                String
-  author              String
-  publisher           String
-  categories          Category[]
-  allQuantity         Int
-  yearOfPublication   String
-  
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                String      @id @default(uuid())
+  title             String
+  author            String
+  publisher         String
+  publicationDate   DateTime
+  pages             Int?
+  imageLink         String?
+  quantity          Int
 
-  transactions        Transaction[]
+  createdAt         DateTime    @default(now())
+
+  Categories        Category[]
+  Transactions      Transaction[]
 }
 
 model Category {
-  id      Int @id @default(autoincrement())
-  name    String @unique
-  books   Book[]
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+
+  Books     Book[]
 }
 
 model Transaction {
-  id                String      @id @default(uuid())
+  id              String        @id @default(uuid())
+  accountId       String
+  bookId          String
+  borrowedAt      DateTime      
+  dueDate         DateTime
+  returnedAt      DateTime?      
 
-  accountId         String
-  account           Account     @relation(fields: [accountId], references: [id])
-  bookId            String
-  book              Book        @relation(fields: [bookId], references: [id])
-
-  borrowedAt        DateTime    @default(now())
-  expectedReturnAt  DateTime[]
+  Account         Account       @relation(fields: [accountId], references: [id])
+  Book            Book          @relation(fields: [bookId], references: [id])
+  Renewals        Renewal[]
 }
 
-model Log {
-  id                  String      @id @default(uuid())
+model Renewal {
+  id                String      @id @default(uuid())
+  transactionId     String
+  renewedAt         DateTime    @default(now())
+  dueDate           DateTime
 
-  bookId              String
-  accountId           String
+  Transaction       Transaction @relation(fields: [transactionId], references: [id])
+}
 
-  bookName            String
-  author              String
-  userName            String
-  
-  borrowedAt          DateTime
-  expectedReturnAt    DateTime[]
-  actualReturnedAt    DateTime    @default(now())
+model History {
+  id                String      @id @default(uuid())
+  transactionId     String
+  userName          String
+  bookTitle         String
+  categoriesName    String[]
+  author            String
+  borrowedAt        DateTime
+  renewedAt         DateTime[]
+  dueDates          DateTime[]
+  returnedAt        DateTime
+
+  accountId         String
+  bookId            String
+  categoriesId      String[]
 }

@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
 
     const type = data.type;
 
-    const name = data.searchValues.name || "";
+    const title = data.searchValues.title || "";
     const author = data.searchValues.author || "";
     const categories: number[] = data.searchValues.categories || [];
     const publisher = data.searchValues.publisher || "";
-    const yearOfPublication = data.searchValues.yearOfPublication || [
+    const publicationDate = data.searchValues.publicationDate || [
       dayjs(0),
       dayjs(Date.now()),
     ];
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const categoriesFilter = categories.map((catId) => {
       const condition = {
-        categories: {
+        Categories: {
           some: {
             id: catId,
           },
@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
 
     const count = await prisma.book.count({
       where: {
-        name: {
-          contains: name || "",
+        title: {
+          contains: title || "",
           mode: "insensitive",
         },
         author: {
@@ -53,9 +53,16 @@ export async function POST(request: NextRequest) {
           contains: publisher || "",
           mode: "insensitive",
         },
-        yearOfPublication: {
-          lte: yearOfPublication[1],
+        publicationDate: {
+          lte: publicationDate[1],
         },
+        // Transactions: {
+        //   some: {
+        //     returnedAt: {
+        //       equals: null,
+        //     },
+        //   },
+        // },
       },
     });
 
@@ -63,8 +70,8 @@ export async function POST(request: NextRequest) {
       skip: pageSize * (current - 1),
       take: pageSize,
       where: {
-        name: {
-          contains: name || "",
+        title: {
+          contains: title || "",
           mode: "insensitive",
         },
         author: {
@@ -76,16 +83,21 @@ export async function POST(request: NextRequest) {
           contains: publisher || "",
           mode: "insensitive",
         },
-        yearOfPublication: {
-          lte: yearOfPublication[1],
+        publicationDate: {
+          lte: publicationDate[1],
         },
       },
       include: {
-        categories: true,
-        // transactions: true,
+        Categories: true,
         _count: {
           select: {
-            transactions: true,
+            Transactions: {
+              where: {
+                returnedAt: {
+                  equals: null,
+                },
+              },
+            },
           },
         },
       },
@@ -99,6 +111,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (err) {
-    throw err;
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

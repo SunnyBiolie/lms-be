@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ books }, { status: 200 });
     }
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

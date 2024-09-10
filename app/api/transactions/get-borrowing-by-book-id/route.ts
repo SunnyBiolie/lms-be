@@ -1,26 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { missingFields } from "@/configs";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const accountId = searchParams.get("accountId");
+    const bookId = searchParams.get("bookId");
 
-    if (!accountId) {
-      return NextResponse.json(
-        { message: "Missing required field(s) to fetch data" },
-        { status: 400 }
-      );
+    if (!bookId) {
+      return missingFields();
     }
 
     const listTransactions = await prisma.transaction.findMany({
       where: {
-        accountId,
+        bookId,
+        returnedAt: {
+          equals: null,
+        },
       },
     });
 
     return NextResponse.json({ listTransactions }, { status: 200 });
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }
