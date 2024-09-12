@@ -1,5 +1,7 @@
 import { doesNotExist } from "@/configs";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 // Validation
@@ -9,6 +11,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const accessToken = cookies().get("access-token")?.value;
+    const { isAuth } = await jwtCheck(accessToken);
+    if (!isAuth) {
+      return failedJWTCheck();
+    }
+
     const { oldPwd, newPwd, accountId } = await request.json();
 
     if (oldPwd === newPwd) {

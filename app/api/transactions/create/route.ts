@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
     const borrowingCount = await prisma.transaction.count({
       where: {
         bookId: bookId,
+        returnedAt: {
+          equals: null,
+        },
       },
     });
 

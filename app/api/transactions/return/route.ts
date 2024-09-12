@@ -30,6 +30,18 @@ export async function PATCH(request: NextRequest) {
       ...transaction.Renewals.map((tr) => tr.dueDate),
     ];
 
+    const book = await prisma.book.findUnique({
+      where: {
+        id: data.bookId,
+      },
+      include: {
+        Categories: true,
+      },
+    });
+
+    const catesName = book?.Categories.map((c) => c.name);
+    const catesId = book?.Categories.map((c) => c.id.toString());
+
     const history = await prisma.history.create({
       data: {
         transactionId: transaction.id,
@@ -42,6 +54,8 @@ export async function PATCH(request: NextRequest) {
         bookTitle: data.title,
         author: data.author,
         userName: data.userName,
+        categoriesName: catesName,
+        categoriesId: catesId,
       },
     });
 

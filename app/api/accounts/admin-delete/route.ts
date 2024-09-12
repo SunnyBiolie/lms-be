@@ -57,15 +57,9 @@ export async function DELETE(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(
-      { message: "Delete successfully" },
-      {
-        headers: {
-          // "set-cookie": `token=${token}; Path=/; HttpOnly; SameSite=None; Secure`,
-          "Set-Cookie": `access-token=deleted; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
-        },
-      }
-    );
+    return NextResponse.json({
+      message: `Delete ${account.fullName}'s account successfully`,
+    });
   } catch (err) {
     return NextResponse.json(
       { message: (err as Error).message },
