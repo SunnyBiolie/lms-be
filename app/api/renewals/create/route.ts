@@ -26,10 +26,30 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      if (!transaction) return doesNotExist("Transaction");
+      if (!transaction || !transaction.dueDate)
+        return doesNotExist("Transaction");
 
-      // Sách đã quá hạn
+      if (transaction.passedFor !== null) {
+        return NextResponse.json(
+          {
+            message:
+              "You have no right to do this because you passed this book to someone else",
+          },
+          { status: 409 }
+        );
+      }
+      if (transaction.receivedFrom !== "SYSTEM") {
+        return NextResponse.json(
+          {
+            message:
+              "You have no right to do this because you did not borrow this book from the system",
+          },
+          { status: 409 }
+        );
+      }
+
       if (transaction.dueDate.getTime() < Date.now())
+        // Sách đã quá hạn
         return NextResponse.json(
           {
             message: "The book is past the return date",
@@ -51,7 +71,6 @@ export async function POST(request: NextRequest) {
     await prisma.renewal.create({
       data: {
         transactionId,
-        renewedAt: dayjs(Date.now()).format(),
         dueDate,
       },
     });

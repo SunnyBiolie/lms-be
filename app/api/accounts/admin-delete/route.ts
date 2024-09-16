@@ -1,14 +1,12 @@
 import { doesNotExist, missingFields } from "@/configs";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import prisma from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(request: NextRequest) {
   try {
-    const accessToken = cookies().get("access-token")?.value;
-    const isCheck = await jwtCheck(accessToken);
-    if (!isCheck) {
+    const { isAuth } = await jwtCheck(request);
+    if (!isAuth) {
       return failedJWTCheck();
     }
 

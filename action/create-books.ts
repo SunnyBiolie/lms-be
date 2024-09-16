@@ -6,40 +6,6 @@ import dayjs from "dayjs";
 
 export const createBooks = async () => {
   try {
-    const response = await fetch(
-      "https://raw.githubusercontent.com/benoitvallon/100-best-books/master/books.json",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-
-    const data: {
-      title: string;
-      author: string;
-      year: Number;
-      pages: Number;
-    }[] = await response.json();
-
-    const firstTenData = data.slice(0, 20);
-
-    // @ts-ignore
-    const formatedData: (Book & {
-      Categories: string[];
-    })[] = firstTenData.map((book, index) => ({
-      title: book.title,
-      author: book.author,
-      publisher: "unknown",
-      publicationDate: dayjs(book.year.toString()).format(),
-      pages: book.pages,
-      quantity: 10,
-      Categories: {
-        connect: [{ id: Math.round(Math.random() * 10) }],
-      },
-    }));
-
     await prisma.category.createMany({
       data: [
         {
@@ -83,6 +49,58 @@ export const createBooks = async () => {
           name: "history",
         },
       ],
+    });
+
+    const response = await fetch(
+      "https://raw.githubusercontent.com/benoitvallon/100-best-books/master/books.json",
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const data: {
+      title: string;
+      author: string;
+      year: Number;
+      pages: Number;
+    }[] = await response.json();
+
+    const firstTenData = data.slice(0, 20);
+
+    // @ts-ignore
+    const formatedData: (Book & {
+      Categories: string[];
+    })[] = firstTenData.map((book, index) => {
+      const number = Math.ceil(Math.random() * 3);
+      const categoriesId: {}[] = [];
+      const randUnique = () => {
+        const rand = Math.ceil(Math.random() * 10);
+        if (categoriesId.includes(rand)) {
+          randUnique();
+        } else {
+          categoriesId.push({
+            id: rand,
+          });
+        }
+      };
+      for (let i = 0; i < number; i++) {
+        randUnique();
+      }
+
+      return {
+        title: book.title,
+        author: book.author,
+        publisher: "unknown",
+        publicationDate: dayjs(book.year.toString()).format(),
+        pages: book.pages,
+        quantity: 10,
+        Categories: {
+          connect: categoriesId,
+        },
+      };
     });
 
     formatedData.forEach(async (item: Book) => {

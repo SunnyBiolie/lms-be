@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
       data: {
         accountId,
         bookId,
-        borrowedAt: dayjs(Date.now()).format(),
         dueDate: dueDate,
+        receivedFrom: "SYSTEM",
       },
     });
 

@@ -46,6 +46,25 @@ export async function DELETE(request: NextRequest) {
         { status: 409 }
       );
 
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        accountId: account.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const listTransId = transactions.map((tr) => tr.id);
+
+    await prisma.renewal.deleteMany({
+      where: {
+        transactionId: {
+          in: listTransId,
+        },
+      },
+    });
+
     await prisma.transaction.deleteMany({
       where: {
         accountId: account.id,

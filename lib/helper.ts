@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "./prisma";
 import jwt from "jsonwebtoken";
 
@@ -31,10 +31,14 @@ export const getAccountInfor = async (userName: string) => {
   }
 };
 
-export const jwtCheck = async (accessToken: string | undefined) => {
-  if (!accessToken) {
+export const jwtCheck = async (req: NextRequest) => {
+  const cookie = req.cookies.get("access-token");
+
+  if (!cookie) {
     return { isAuth: false };
   }
+
+  const accessToken = cookie.value;
 
   try {
     // @ts-ignore
@@ -43,7 +47,6 @@ export const jwtCheck = async (accessToken: string | undefined) => {
       userName: string;
     } = jwt.verify(accessToken, process.env.SECRET_KEY!);
     const userName = decoded.userName;
-    console.log("jwtCheck", userName);
     const check = await prisma.account.findUnique({
       where: {
         userName,

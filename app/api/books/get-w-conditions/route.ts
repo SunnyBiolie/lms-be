@@ -96,6 +96,9 @@ export async function POST(request: NextRequest) {
                 returnedAt: {
                   equals: null,
                 },
+                receivedFrom: {
+                  equals: "SYSTEM",
+                },
               },
             },
           },

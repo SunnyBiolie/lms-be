@@ -17,6 +17,12 @@ export async function GET(request: NextRequest) {
         returnedAt: {
           equals: null,
         },
+        receivedFrom: {
+          not: null,
+        },
+      },
+      include: {
+        Renewals: true,
       },
     });
 

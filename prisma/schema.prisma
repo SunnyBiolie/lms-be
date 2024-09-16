@@ -57,9 +57,11 @@ model Transaction {
   id              String        @id @default(uuid())
   accountId       String
   bookId          String
-  borrowedAt      DateTime      
-  dueDate         DateTime
-  returnedAt      DateTime?      
+  borrowedAt      DateTime      @default(now())
+  dueDate         DateTime?
+  returnedAt      DateTime?
+  receivedFrom    String?
+  passedFor       String?
 
   Account         Account       @relation(fields: [accountId], references: [id])
   Book            Book          @relation(fields: [bookId], references: [id])
@@ -86,6 +88,8 @@ model History {
   renewedAt         DateTime[]
   dueDates          DateTime[]
   returnedAt        DateTime
+  receivedFrom      String
+  passedFor         String?
 
   accountId         String
   bookId            String

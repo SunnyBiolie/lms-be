@@ -1,13 +1,9 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
-import prisma from "@/lib/prisma";
-import { failedJWTCheck, getAccountInfor, jwtCheck } from "@/lib/helper";
+import { NextRequest, NextResponse } from "next/server";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const accessToken = cookies().get("access-token")?.value;
-    const { isAuth, account } = await jwtCheck(accessToken);
+    const { isAuth, account } = await jwtCheck(req);
     if (!isAuth) {
       return failedJWTCheck();
     }

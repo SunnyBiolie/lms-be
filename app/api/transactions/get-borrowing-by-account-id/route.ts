@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
       },
       include: {
         Renewals: true,
+        Book: {
+          select: {
+            title: true,
+            author: true,
+          },
+        },
       },
     });
 

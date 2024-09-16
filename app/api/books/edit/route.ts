@@ -30,7 +30,13 @@ export async function POST(request: NextRequest) {
       select: {
         _count: {
           select: {
-            Transactions: true,
+            Transactions: {
+              where: {
+                returnedAt: {
+                  equals: null,
+                },
+              },
+            },
           },
         },
       },
