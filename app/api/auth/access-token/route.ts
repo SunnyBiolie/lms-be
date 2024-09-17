@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
+import { Account } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,8 +9,13 @@ export async function GET(req: NextRequest) {
       return failedJWTCheck();
     }
 
+    if (!account) throw new Error(`No account was found`);
+
+    const accWithoutPass: Partial<Account> = account;
+    delete accWithoutPass.passWord;
+
     return NextResponse.json({
-      currentAccount: account,
+      currentAccount: accWithoutPass,
     });
 
     // if (!accessToken) {

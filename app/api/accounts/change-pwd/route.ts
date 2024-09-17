@@ -1,7 +1,6 @@
 import { doesNotExist } from "@/configs";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import prisma from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 // Validation
@@ -11,8 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const accessToken = cookies().get("access-token")?.value;
-    const { isAuth } = await jwtCheck(accessToken);
+    const { isAuth } = await jwtCheck(request);
     if (!isAuth) {
       return failedJWTCheck();
     }
@@ -49,7 +47,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: "Change password successfully" });
+    return NextResponse.json(
+      { message: "Change password successfully" },
+      {
+        headers: {
+          "Set-Cookie": `access-token=deleted; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+        },
+      }
+    );
   } catch (err) {
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
