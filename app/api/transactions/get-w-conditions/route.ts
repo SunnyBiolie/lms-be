@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       case "account":
         switch (type) {
           case "borrowing":
-            const result = await prisma.transaction.findMany({
+            const borrowing = await prisma.transaction.findMany({
               where: {
                 accountId: id,
                 returnedAt: {
@@ -48,14 +48,136 @@ export async function GET(req: NextRequest) {
                 },
               },
             });
-            return NextResponse.json({ data: result });
+            return NextResponse.json({ data: borrowing });
           case "requesting":
-            return;
+            const requesting = await prisma.transaction.findMany({
+              where: {
+                accountId: id,
+                returnedAt: {
+                  equals: null,
+                },
+                receivedFrom: {
+                  equals: null,
+                },
+              },
+              include: {
+                Account: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+                Book: {
+                  select: {
+                    title: true,
+                  },
+                },
+              },
+            });
+            return NextResponse.json({ data: requesting });
+          case "returned":
+            const returned = await prisma.transaction.findMany({
+              where: {
+                accountId: id,
+                returnedAt: {
+                  not: null,
+                },
+              },
+              include: {
+                Account: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+                Book: {
+                  select: {
+                    title: true,
+                  },
+                },
+              },
+            });
+            return NextResponse.json({ data: returned });
         }
-        break;
+      case "book":
+        switch (type) {
+          case "borrowing":
+            const borrowing = await prisma.transaction.findMany({
+              where: {
+                bookId: id,
+                returnedAt: {
+                  equals: null,
+                },
+                receivedFrom: {
+                  equals: "SYSTEM",
+                },
+              },
+              include: {
+                Account: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+                Book: {
+                  select: {
+                    title: true,
+                  },
+                },
+              },
+            });
+            return NextResponse.json({ data: borrowing });
+          case "requesting":
+            const requesting = await prisma.transaction.findMany({
+              where: {
+                bookId: id,
+                returnedAt: {
+                  equals: null,
+                },
+                receivedFrom: {
+                  equals: null,
+                },
+              },
+              include: {
+                Account: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+                Book: {
+                  select: {
+                    title: true,
+                  },
+                },
+              },
+            });
+            return NextResponse.json({ data: requesting });
+          case "returned":
+            const returned = await prisma.transaction.findMany({
+              where: {
+                bookId: id,
+                returnedAt: {
+                  not: null,
+                },
+                receivedFrom: {
+                  equals: "SYSTEM",
+                },
+              },
+              include: {
+                Account: {
+                  select: {
+                    fullName: true,
+                  },
+                },
+                Book: {
+                  select: {
+                    title: true,
+                  },
+                },
+              },
+            });
+            return NextResponse.json({ data: returned });
+        }
+      default:
+        throw new Error("");
     }
-
-    return NextResponse.json("");
   } catch (err) {
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }

@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
       where: {
         accountId,
       },
+      orderBy: {
+        returnedAt: "desc",
+      },
     });
 
     return NextResponse.json({ data: histories });
