@@ -63,6 +63,7 @@ export const failedJWTCheck = () => {
   return NextResponse.json(
     {
       redirectToAuth: true,
+      // redirectFrom: req.nextUrl,
       message: "Something went wrong, please login again",
     },
     {

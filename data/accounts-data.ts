@@ -8,9 +8,10 @@ const accounts: Partial<Account>[] = [
     phoneNumber: "(770) 792-1298",
     email: "mike.mccoy@example.com",
     birthDate: new Date("7/1/1957"),
-    userName: "M_Mccoy",
+    userName: "mmccoy",
     passWord: "1234",
     role: "USER",
+    createdAt: new Date("12/2/2023"),
   },
   {
     fullName: "Lucille Lowe",
@@ -21,6 +22,7 @@ const accounts: Partial<Account>[] = [
     userName: "Lucy",
     passWord: "1234",
     role: "USER",
+    createdAt: new Date("2/6/2024"),
   },
   {
     fullName: "Corey Ramos",

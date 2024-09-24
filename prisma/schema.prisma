@@ -26,8 +26,10 @@ model Account {
   passWord        String
   role            String
 
+  createdAt       DateTime  @default(now())
   // Borrowing       Borrowing[]
   Transactions    Transaction[]
+  ReportAccount   Rp_Account[]
 }
 
 model Book {
@@ -39,11 +41,14 @@ model Book {
   pages             Int?
   imageLink         String?
   quantity          Int
+  price             Int
+  isSpecial         Boolean
 
   createdAt         DateTime    @default(now())
 
   Categories        Category[]
   Transactions      Transaction[]
+  ReportBook        Rp_Book[]
 }
 
 model Category {
@@ -94,4 +99,36 @@ model History {
   accountId         String
   bookId            String
   categoriesId      String[]
+}
+
+model Report {
+  id                String    @id @default(uuid())
+  month             Int
+  year              Int
+  createdAt         DateTime  @default(now())
+
+  ReportAccounts    Rp_Account[]
+  ReportBooks       Rp_Book[]
+}
+
+model Rp_Account {
+  id                String    @id @default(uuid())
+  reportId          String
+  accountId         String
+  borrowCount       Int
+  overdueCount      Int
+  isViewedByUser    Boolean
+
+  Report            Report    @relation(fields: [reportId], references: [id])
+  Account           Account   @relation(fields: [accountId], references: [id])
+}
+
+model Rp_Book {
+  id                String    @id @default(uuid())
+  reportId          String
+  bookId            String
+  borrowedCount     Int
+
+  Report            Report    @relation(fields: [reportId], references: [id])
+  Book              Book    @relation(fields: [bookId], references: [id])
 }

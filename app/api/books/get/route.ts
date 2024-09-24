@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 
 export async function POST(request: NextRequest) {
   try {
+    const { isAuth } = await jwtCheck(request);
+    if (!isAuth) {
+      return failedJWTCheck();
+    }
+
     const { bookIds } = await request.json();
 
     if (!bookIds) {
