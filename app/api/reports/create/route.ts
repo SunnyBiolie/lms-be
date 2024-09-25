@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import { missingFields } from "@/configs";
-import { Transaction } from "@prisma/client";
+import { History, Rp_Account, Rp_Book, Transaction } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,13 +17,7 @@ export async function POST(req: NextRequest) {
 
     if (!month || !year) return missingFields();
 
-    // const report = await prisma.report.create({
-    //   data: {
-    //     month,
-    //     year,
-    //   },
-    // });
-
+    // Lấy những giao dịch được tạo ra trong tháng
     const borrowed = await prisma.transaction.findMany({
       where: {
         borrowedAt: {
@@ -34,19 +28,25 @@ export async function POST(req: NextRequest) {
           not: null,
         },
       },
+      select: {
+        accountId: true,
+      },
     });
 
-    const uniqueBorrowedId = [...new Set(borrowed.map((b) => b.accountId))];
+    const uniqueBorrowedAccountIds = [
+      ...new Set(borrowed.map((b) => b.accountId)),
+    ];
 
-    const listBorrowedCount = uniqueBorrowedId.map((id) => {
+    const listBorrowedCount = uniqueBorrowedAccountIds.map((id) => {
       const arr = borrowed.filter((item) => item.accountId === id);
       return {
-        id,
-        borrowedCount: arr.length,
+        accountId: id,
+        borrowCount: arr.length,
       };
     });
 
-    const returned = await prisma.transaction.findMany({
+    // Lấy những giao dịch được return trong tháng (return tạo History nên lấy History)
+    const returned = await prisma.history.findMany({
       where: {
         returnedAt: {
           gte: new Date(year, month - 1, 1),
@@ -55,19 +55,111 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const uniqueReturnedId = [...new Set(returned.map((b) => b.accountId))];
+    const overdue: History[] = [];
+    // Kiểm tra xem giao dịch nào quá hạn
+    returned.forEach((his) => {
+      if (
+        his.returnedAt > his.dueDates[his.dueDates.length - 1] &&
+        his.passedFor === null
+      ) {
+        overdue.push(his);
+      }
+    });
 
-    const listReturnedCount = uniqueReturnedId.map((id) => {
-      const arr = returned.filter((item) => item.accountId === id);
+    // Lấy danh sách các accountId duy nhất
+    const uniqueOverdueAccountIds = [
+      ...new Set(overdue.map((his) => his.accountId)),
+    ];
+
+    const listOverdueCount = uniqueOverdueAccountIds.map((accId) => {
+      const arr = overdue.filter((item) => item.accountId === accId);
       return {
-        id,
-        returnedCount: arr.length,
+        accountId: accId,
+        overdueCount: arr.length,
       };
     });
 
-    [...listBorrowedCount, ...listReturnedCount]
+    const uniqueMergeIds = [
+      ...new Set(
+        [...listBorrowedCount, ...listOverdueCount].map(
+          (item) => item.accountId
+        )
+      ),
+    ];
 
-    return NextResponse.json({ data: [...listBorrowedCount, ...listReturnedCount] });
+    const Rp_Accounts = uniqueMergeIds.map((accId) => {
+      const arr = [...listBorrowedCount, ...listOverdueCount].filter(
+        (item) => item.accountId === accId
+      );
+      return arr.reduce((acc, curr) => ({ ...acc, ...curr }));
+    });
+
+    const bookBorrowing = await prisma.transaction.findMany({
+      where: {
+        borrowedAt: {
+          gte: new Date(year, month - 1, 1),
+          lte: new Date(year, month, 0),
+        },
+        receivedFrom: {
+          equals: "SYSTEM",
+        },
+      },
+    });
+
+    const uniqueBookIds = [
+      ...new Set(bookBorrowing.map((trans) => trans.bookId)),
+    ];
+
+    const Rp_Books = uniqueBookIds.map((bookId) => {
+      const arr = bookBorrowing.filter((trans) => trans.bookId === bookId);
+      return {
+        bookId,
+        borrowedCount: arr.length,
+      };
+    });
+
+    // Tạo Report chung của tháng
+    const report = await prisma.report.create({
+      data: {
+        month,
+        year,
+      },
+    });
+
+    const rpAccountsData: Partial<Rp_Account>[] = Rp_Accounts.map((item) => {
+      return {
+        reportId: report.id,
+        borrowCount: 0,
+        overdueCount: 0,
+        isViewedByUser: false,
+        ...item,
+      };
+    });
+
+    // Tạo Report cho Account
+    const result_rp_account = await prisma.rp_Account.createManyAndReturn({
+      data: rpAccountsData as Rp_Account[],
+    });
+
+    const rpBooksData: Partial<Rp_Book>[] = Rp_Books.map((item) => {
+      return {
+        reportId: report.id,
+        ...item,
+      };
+    });
+
+    // Tạo Report cho Book
+    const result_rp_book = await prisma.rp_Book.createManyAndReturn({
+      data: rpBooksData as Rp_Book[],
+    });
+
+    return NextResponse.json({
+      data: {
+        Report: report,
+        ReportAccounts: result_rp_account,
+        ReportBooks: result_rp_book,
+      },
+    });
   } catch (err) {
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }

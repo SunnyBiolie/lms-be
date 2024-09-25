@@ -51,6 +51,20 @@ const booksData: Partial<Book & Categories>[] = [
       connect: [{ id: 1001 }, { id: 1008 }],
     },
   },
+  {
+    title: "Mrs Dalloway",
+    author: "Virginia Woolf",
+    publisher: "Hogarth Press",
+    publicationDate: new Date("1925"),
+    pages: 216,
+    quantity: 6,
+    price: 240000,
+    isSpecial: false,
+
+    Categories: {
+      connect: [{ id: 1002 }, { id: 1007 }],
+    },
+  },
 ];
 
 export default booksData;
