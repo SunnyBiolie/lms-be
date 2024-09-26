@@ -65,6 +65,20 @@ const booksData: Partial<Book & Categories>[] = [
       connect: [{ id: 1002 }, { id: 1007 }],
     },
   },
+  {
+    title: "Pippi Longstocking",
+    author: "Astrid Lindgren",
+    publisher: "Astrid Lindgren",
+    publicationDate: new Date("1925"),
+    pages: 160,
+    quantity: 10,
+    price: 168000,
+    isSpecial: false,
+
+    Categories: {
+      connect: [{ id: 1002 }, { id: 1003 }, { id: 1008 }],
+    },
+  },
 ];
 
 export default booksData;

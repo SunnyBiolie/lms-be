@@ -30,6 +30,7 @@ model Account {
   // Borrowing       Borrowing[]
   Transactions    Transaction[]
   ReportAccount   Rp_Account[]
+  MembershipLog   MembershipLog[] 
 }
 
 model Book {
@@ -109,6 +110,7 @@ model Report {
 
   ReportAccounts    Rp_Account[]
   ReportBooks       Rp_Book[]
+  MembershipLogs    MembershipLog[]
 }
 
 model Rp_Account {
@@ -131,4 +133,16 @@ model Rp_Book {
 
   Report            Report    @relation(fields: [reportId], references: [id])
   Book              Book    @relation(fields: [bookId], references: [id])
+}
+
+model MembershipLog {
+  id                String      @id @default(uuid())
+  accountId         String
+  reportId          String
+  from              String
+  to                String
+  createdAt         DateTime
+
+  Account           Account     @relation(fields: [accountId], references: [id])
+  Report            Report      @relation(fields: [reportId], references: [id])
 }

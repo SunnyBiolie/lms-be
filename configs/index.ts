@@ -13,3 +13,5 @@ export const doesNotExist = (name: string) => {
     { status: 404 }
   );
 };
+
+export const dayInMiliseconds = 24 * 60 * 60 * 1000;
