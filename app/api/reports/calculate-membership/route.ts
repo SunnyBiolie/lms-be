@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { calculateMembership, failedJWTCheck, jwtCheck } from "@/lib/helper";
 import { dayInMiliseconds, missingFields } from "@/configs";
-import { Report } from "@prisma/client";
+import { Account, Report } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
     // // Lọc ra những tà khoản sẽ được nâng lên VIP
     // const willVips = upgradeToVIPResult.filter((item) => item.upgrade === true);
 
-    // let newMembers;
-    // let newVips;
+    // let newMembers: Account[] = [];
+    // let newVips: Account[] = [];
 
     // // Thực hiện nâng cấp MEMBER: thêm record cho bảng MembershipLog và update bảng Account
     // if (willMembers.length > 0) {
@@ -125,10 +125,11 @@ export async function POST(req: NextRequest) {
 
     // return NextResponse.json({
     //   data: {
-    //     members: newMembers.lenght,
-    // vips: newVips.lenght,
+    //     members: newMembers.length,
+    //     vips: newVips.length,
     //   },
     // });
+
     return NextResponse.json({
       data: {
         members: 2,

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { maxUnreturnedTransactions } from "@/configs/transaction.config";
 import dayjs from "dayjs";
+import {
+  bookNumberPriorForMember,
+  bookNumberPriorForVip,
+} from "@/configs/membership.config";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 
 /*
   Validations:
@@ -11,7 +16,14 @@ import dayjs from "dayjs";
 */
 export async function POST(request: NextRequest) {
   try {
+    const { isAuth, account } = await jwtCheck(request);
+    if (!isAuth) {
+      return failedJWTCheck();
+    }
+
     const { accountId, bookId, dueDate } = await request.json();
+
+    if (!account || account.id !== accountId) return failedJWTCheck();
 
     const book = await prisma.book.findUnique({
       where: {
@@ -36,12 +48,39 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (borrowingCount >= book.quantity) {
+    const available = book.quantity - borrowingCount;
+    // Check: Sách còn lại trong kho bằng 0
+    if (available <= 0) {
       return NextResponse.json(
         { message: "This book is not avaliable now" },
         { status: 409 }
       );
     }
+
+    let isPrior = true;
+    if (available <= bookNumberPriorForMember) {
+      switch (account.role) {
+        case "USER":
+          isPrior = false;
+          break;
+      }
+    } else if (available <= bookNumberPriorForVip) {
+      switch (account.role) {
+        case "USER":
+          isPrior = false;
+          break;
+        case "MEMBER":
+          isPrior = false;
+          break;
+      }
+    }
+
+    // Check: Ưu tiên theo role khi số lượng trong kho còn ít
+    if (!isPrior)
+      return NextResponse.json(
+        { message: "You do not have priority for borrowing this book" },
+        { status: 409 }
+      );
 
     // List sách đang được mượn bởi account này
     const listBorrowing = await prisma.transaction.findMany({
@@ -53,6 +92,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Check: Account đang mượn sách này
     if (listBorrowing.findIndex((i) => i.bookId === bookId) !== -1) {
       return NextResponse.json(
         { message: "You are borrowing this book" },
