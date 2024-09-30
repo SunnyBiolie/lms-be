@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
 
     const accounts = await prisma.account.findMany({
       where: {
-        role,
+        role: {
+          not: "ADMIN",
+        },
       },
       omit: {
         passWord: true,

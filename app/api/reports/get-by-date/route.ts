@@ -3,6 +3,29 @@ import prisma from "@/lib/prisma";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import { missingFields } from "@/configs";
 
+const include = {
+  ReportAccounts: {
+    include: {
+      Account: {
+        select: {
+          fullName: true,
+        },
+      },
+    },
+  },
+  ReportBooks: {
+    include: {
+      Book: {
+        select: {
+          title: true,
+          author: true,
+          Categories: true,
+        },
+      },
+    },
+  },
+};
+
 export async function POST(req: NextRequest) {
   try {
     const { isAuth } = await jwtCheck(req);
@@ -11,10 +34,10 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      type,
+      time,
       value,
     }: {
-      type: "year" | "quarter" | "month";
+      time: "year" | "quarter" | "month";
       value: {
         year: number;
         quarter?: number;
@@ -22,27 +45,63 @@ export async function POST(req: NextRequest) {
       };
     } = await req.json();
 
-    if (!type || !value) return missingFields();
+    if (!time || !value) return missingFields();
 
     let report;
 
-    switch (type) {
+    const { year, quarter, month } = value;
+
+    switch (time) {
       case "year":
+        if (!year) return missingFields();
+        report = await prisma.report.findMany({
+          where: {
+            year,
+          },
+          include: include,
+        });
         break;
       case "quarter":
+        let months: number[] = [];
+        switch (quarter) {
+          case 1:
+            months = [1, 2, 3];
+            break;
+          case 2:
+            months = [4, 5, 6];
+            break;
+          case 3:
+            months = [7, 8, 9];
+            break;
+          case 4:
+            months = [10, 11, 12];
+            break;
+          default:
+            return NextResponse.json(
+              { message: "Invalid Quarter" },
+              { status: 400 }
+            );
+        }
+
+        if (!quarter || !year) return missingFields();
+        report = await prisma.report.findMany({
+          where: {
+            year,
+            month: {
+              in: months,
+            },
+          },
+          include,
+        });
         break;
       case "month":
-        const { month, year } = value;
         if (!month || !year) return missingFields();
-        report = await prisma.report.findFirst({
+        report = await prisma.report.findMany({
           where: {
             month,
             year,
           },
-          include: {
-            ReportAccounts: true,
-            ReportBooks: true,
-          },
+          include: include,
         });
         break;
       default:
