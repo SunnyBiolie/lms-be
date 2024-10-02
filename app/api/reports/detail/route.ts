@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
           select: {
             fullName: true,
             userName: true,
+            id: true,
           },
         },
       },

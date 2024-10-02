@@ -58,18 +58,18 @@ export async function POST(request: NextRequest) {
     }
 
     let isPrior = true;
-    if (available <= bookNumberPriorForMember) {
-      switch (account.role) {
-        case "USER":
-          isPrior = false;
-          break;
-      }
-    } else if (available <= bookNumberPriorForVip) {
+    if (available <= bookNumberPriorForVip) {
       switch (account.role) {
         case "USER":
           isPrior = false;
           break;
         case "MEMBER":
+          isPrior = false;
+          break;
+      }
+    } else if (available <= bookNumberPriorForMember) {
+      switch (account.role) {
+        case "USER":
           isPrior = false;
           break;
       }
