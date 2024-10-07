@@ -46,6 +46,7 @@ model Book {
   isSpecial         Boolean
 
   createdAt         DateTime    @default(now())
+  deletedAt         DateTime?
 
   Categories        Category[]
   Transactions      Transaction[]

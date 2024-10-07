@@ -19,6 +19,19 @@ export async function GET(req: NextRequest) {
       where: {
         id: bookId,
       },
+      include: {
+        Categories: true,
+        _count: {
+          select: {
+            Transactions: {
+              where: {
+                receivedFrom: "SYSTEM",
+                returnedAt: null,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json({ data: book });

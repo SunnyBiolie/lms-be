@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
       quantity,
       publicationDate,
       pages,
+      isSpecial,
+      price,
     }: Book & {
       Categories: number[];
     } = await request.json();
@@ -70,11 +72,14 @@ export async function POST(request: NextRequest) {
         quantity,
         publicationDate,
         pages,
+        price,
+        isSpecial: !!isSpecial,
       },
     });
 
     return NextResponse.json({ message: "Edit book successfully" });
   } catch (err) {
+    console.log(err);
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

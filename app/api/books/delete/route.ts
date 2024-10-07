@@ -1,9 +1,21 @@
 import { missingFields } from "@/configs";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(request: NextRequest) {
   try {
+    const { isAuth, account } = await jwtCheck(request);
+    if (!isAuth || !account) {
+      return failedJWTCheck();
+    }
+
+    if (account.role !== "ADMIN")
+      return NextResponse.json(
+        { message: "You do not have permission to perform this action" },
+        { status: 405 }
+      );
+
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get("id");
 
@@ -16,7 +28,11 @@ export async function DELETE(request: NextRequest) {
         select: {
           _count: {
             select: {
-              Transactions: true,
+              Transactions: {
+                where: {
+                  returnedAt: null,
+                },
+              },
             },
           },
         },
@@ -28,6 +44,13 @@ export async function DELETE(request: NextRequest) {
           { status: 409 }
         );
       }
+
+      // Xóa Transactions liên quan
+      await prisma.transaction.deleteMany({
+        where: {
+          bookId: id,
+        },
+      });
 
       await prisma.book.delete({
         where: {
