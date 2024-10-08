@@ -5,8 +5,8 @@ import { missingFields } from "@/configs";
 
 export async function GET(req: NextRequest) {
   try {
-    const { isAuth } = await jwtCheck(req);
-    if (!isAuth) {
+    const { isAuth, account } = await jwtCheck(req);
+    if (!isAuth || !account) {
       return failedJWTCheck();
     }
     const searchParams = req.nextUrl.searchParams;
@@ -27,6 +27,11 @@ export async function GET(req: NextRequest) {
               where: {
                 receivedFrom: "SYSTEM",
                 returnedAt: null,
+              },
+            },
+            LikedBy: {
+              where: {
+                id: account.id,
               },
             },
           },

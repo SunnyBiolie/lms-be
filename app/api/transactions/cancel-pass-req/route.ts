@@ -8,13 +8,12 @@ import { doesNotExist, missingFields } from "@/configs";
 export async function DELETE(req: NextRequest) {
   try {
     const { isAuth, account } = await jwtCheck(req);
-    if (!isAuth) {
-        return failedJWTCheck();
-      }
-      
-      const searchParams = req.nextUrl.searchParams;
-      const transactionId = searchParams.get("transactionId");
-      console.log(searchParams, transactionId);
+    if (!isAuth || !account) {
+      return failedJWTCheck();
+    }
+
+    const searchParams = req.nextUrl.searchParams;
+    const transactionId = searchParams.get("transactionId");
 
     if (!transactionId) return missingFields();
 

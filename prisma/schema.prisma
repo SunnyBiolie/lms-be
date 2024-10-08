@@ -26,6 +26,8 @@ model Account {
   passWord        String
   role            String
 
+  LikedBooks      Book[]
+
   createdAt       DateTime  @default(now())
   // Borrowing       Borrowing[]
   Transactions    Transaction[]
@@ -44,6 +46,8 @@ model Book {
   quantity          Int
   price             Int
   isSpecial         Boolean
+
+  LikedBy           Account[]
 
   createdAt         DateTime    @default(now())
   deletedAt         DateTime?
