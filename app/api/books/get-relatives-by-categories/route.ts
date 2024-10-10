@@ -2,22 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import { missingFields } from "@/configs";
+import { Category } from "@prisma/client";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const { isAuth } = await jwtCheck(req);
     if (!isAuth) {
       return failedJWTCheck();
     }
 
-    const searchParams = req.nextUrl.searchParams;
-    const author = searchParams.get("author");
+    const reqData = await req.json();
 
-    if (!author) return missingFields();
+    const { categories } = reqData;
+
+    if (!categories) return missingFields();
+
+    const cateIds = categories.map((c: Category) => c.id);
 
     const listBooks = await prisma.book.findMany({
       where: {
-        author,
+        Categories: {
+          some: {
+            id: {
+              in: cateIds,
+            },
+          },
+        },
       },
       include: {
         Categories: true,

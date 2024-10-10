@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "Edit book successfully" });
   } catch (err) {
-    console.log(err);
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }
