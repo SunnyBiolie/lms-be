@@ -1,37 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 import dayjs from "dayjs";
 import { Prisma } from "@prisma/client";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const data = await request.json();
+    const { isAuth } = await jwtCheck(req);
+    if (!isAuth) {
+      return failedJWTCheck();
+    }
 
-    const type = data.type;
+    const reqData = await req.json();
 
-    const title = data.searchValues.title || "";
-    const author = data.searchValues.author || "";
-    const categories: number[] = data.searchValues.categories || [];
-    const publisher = data.searchValues.publisher || "";
+    const title = reqData.searchValues.title || "";
+    const author = reqData.searchValues.author || "";
+    const categories: number[] = reqData.searchValues.categories || [];
+    const publisher = reqData.searchValues.publisher || "";
     const publicationDate = (
-      data.searchValues.publicationDate
+      reqData.searchValues.publicationDate
         ? {
-            gte: dayjs(data.searchValues.publicationDate[0]).format(),
-            lte: dayjs(data.searchValues.publicationDate[1]).format(),
+            gte: dayjs(reqData.searchValues.publicationDate[0]).format(),
+            lte: dayjs(reqData.searchValues.publicationDate[1]).format(),
           }
         : {
             lte: dayjs(Date.now()),
           }
     ) as Prisma.DateTimeFilter<"Book">;
 
+    // const { current, pageSize } = reqData.paginationParams;
+
+    const action = reqData.action;
+
     const current =
-      type === "paginate"
-        ? data.paginationParams.current
-        : (type === "goToFirst"
-            ? 1
-            : type === "deleteLastItem" && data.paginationParams.current - 1) ||
-          1;
-    const pageSize = data.paginationParams.pageSize || 5;
+      action === "search"
+        ? 1
+        : action === "paginate" && reqData.paginationParams.current;
+
+    const pageSize = reqData.paginationParams.pageSize;
 
     const categoriesFilter = categories.map((catId) => {
       const condition = {
@@ -61,13 +67,6 @@ export async function POST(request: NextRequest) {
           mode: "insensitive",
         },
         publicationDate,
-        // Transactions: {
-        //   some: {
-        //     returnedAt: {
-        //       equals: null,
-        //     },
-        //   },
-        // },
       },
     });
 
@@ -92,32 +91,24 @@ export async function POST(request: NextRequest) {
       },
       include: {
         Categories: true,
-        _count: {
-          select: {
-            Transactions: {
-              where: {
-                returnedAt: {
-                  equals: null,
-                },
-                receivedFrom: {
-                  equals: "SYSTEM",
-                },
-              },
-            },
-          },
-        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json(
-      { total: count, listBooks: results },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      data: {
+        results,
+        total: count,
+        pagination: {
+          current,
+          pageSize,
+        },
+      },
+    });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

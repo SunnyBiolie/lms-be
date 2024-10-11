@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json("");
   } catch (err) {
+    console.error(err);
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }
-
 
 // import { NextRequest, NextResponse } from "next/server";
 // import * as jose from "jose";
