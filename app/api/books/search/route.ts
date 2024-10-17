@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       data: {
-        results,
+        listBooks: results,
         total: count,
         pagination: {
           current,

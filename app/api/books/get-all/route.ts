@@ -34,6 +34,10 @@ export async function GET(req: NextRequest) {
       data: {
         listBooks,
         total,
+        pagination: {
+          current,
+          pageSize,
+        },
       },
     });
   } catch (err) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Book } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 
 /*
   Validations:
@@ -9,6 +10,17 @@ import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
+    const { isAuth, account } = await jwtCheck(request);
+    if (!isAuth || !account) {
+      return failedJWTCheck();
+    }
+
+    if (account.role !== "ADMIN")
+      return NextResponse.json(
+        { message: "You have no right to do this action" },
+        { status: 409 }
+      );
+
     const {
       id,
       title,
@@ -51,6 +63,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(Categories);
+
     const connectCats = Categories.map((cat) => {
       return {
         id: cat,
@@ -79,6 +93,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "Edit book successfully" });
   } catch (err) {
+    console.log(err);
     return NextResponse.json({ message: (err as Error).name }, { status: 500 });
   }
 }

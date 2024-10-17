@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Book } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { failedJWTCheck, jwtCheck } from "@/lib/helper";
 
 export async function POST(request: NextRequest) {
   try {
+    const { isAuth } = await jwtCheck(request);
+    if (!isAuth) {
+      return failedJWTCheck();
+    }
+
     const newData: Book & {
       Categories: number[];
     } = await request.json();
@@ -42,6 +48,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
+    console.log(err);
     return NextResponse.json(
       { message: (err as Error).name, err },
       { status: 500 }
