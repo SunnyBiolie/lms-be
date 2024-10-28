@@ -24,6 +24,20 @@ export async function GET(req: NextRequest) {
       take: pageSize,
       include: {
         Categories: true,
+        _count: {
+          select: {
+            Transactions: {
+              where: {
+                returnedAt: {
+                  equals: null,
+                },
+                receivedFrom: {
+                  equals: "SYSTEM",
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

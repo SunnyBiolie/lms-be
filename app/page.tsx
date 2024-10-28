@@ -24,6 +24,7 @@ export default function Home() {
     await createTransactions();
     toast.success("Transactions created successfully");
   };
+
   return (
     <div className="p-4">
       <p className="">Create Sample API</p>

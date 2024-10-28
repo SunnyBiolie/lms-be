@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        accountInfo: {
+        currentAccount: {
           ...account,
           passWord: null,
         },

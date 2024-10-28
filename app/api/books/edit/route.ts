@@ -63,8 +63,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(Categories);
-
     const connectCats = Categories.map((cat) => {
       return {
         id: cat,

@@ -91,6 +91,20 @@ export async function POST(req: NextRequest) {
       },
       include: {
         Categories: true,
+        _count: {
+          select: {
+            Transactions: {
+              where: {
+                returnedAt: {
+                  equals: null,
+                },
+                receivedFrom: {
+                  equals: "SYSTEM",
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
